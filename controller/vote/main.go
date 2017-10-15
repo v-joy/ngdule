@@ -67,27 +67,19 @@ func getDb() *sql.DB {
 }
 
 func IsVoted(c *gin.Context) {
+	uid := c.Query("username"); // Todo 需要改为从session 获取
 	cid := c.Param("cid")
 	// Todo: 为什么在此处打印db 为nil?
-	Db := getDb();
-	if err := Db.Ping(); err != nil {
-		log.Fatalln(err)
-	}
-	log.Println("SELECT COUNT(*) as nums FROM vote where vid=" + strconv.Itoa(vid) +" and cid=" + cid)
-	rows, err := Db.Query("SELECT COUNT(*) as nums FROM vote where vid=" + strconv.Itoa(vid) +" and cid=" + cid)
+	db := getDb();
+	rows, err := db.Query("SELECT COUNT(*) as nums FROM vote where vid=" + strconv.Itoa(vid) +" and cid='" + cid +"' and uid='" + uid + "'")
+	checkErr(err)
 	defer rows.Close()
 	voted := true;
-	if err != nil {
-		log.Fatalln(err)
-		c.JSON(http.StatusOK, gin.H{"voted": voted})
-		return ;
-	}
 	for rows.Next() {
 		var nums int
 		rows.Columns()
 		err = rows.Scan(&nums)
-		_ = err
-		fmt.Println(nums) // 为什么在此处访问 Db为空？
+		checkErr(err)
 		if nums == 0 {
 			voted = false
 		}
@@ -97,13 +89,52 @@ func IsVoted(c *gin.Context) {
 }
 
 func SetCompetitorScore(c *gin.Context) {
+	uid := c.Query("username"); // Todo 需要改为从session 获取
+	cid := c.Param("cid")
+	scores := c.PostForm("scores")
+	db := getDb();
+	stmt, err := db.Prepare(`INSERT user (uid,cid,vid,score,type) values (?,?,?,?,?)`)
+	checkErr(err)
+	for i, score := range scores {
+		_ , err := stmt.Exec(uid, cid, vid, score, i)
+		checkErr(err)
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true})
+}
 
+func checkErr(err error)  {
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 
 func SetTeemScore(c *gin.Context) {
-
+	uid := c.Query("username"); // Todo 需要改为从session 获取
+	cid := c.Param("cid")
+	scores := c.PostForm("scores")
+	db := getDb();
+	stmt, err := db.Prepare(`INSERT user (uid,cid,vid,score,type) values (?,?,?,?,?)`)
+	checkErr(err)
+	for i, score := range scores {
+		_ , err := stmt.Exec(uid, cid, vid, score, i)
+		checkErr(err)
+	}
+	c.JSON(http.StatusOK, gin.H{"success": true})
 }
 
 func Summery(c *gin.Context) {
-
+	db := getDb();
+	rows, err := db.Query("SELECT uid, sum(score) as score FROM vote where vid=" + strconv.Itoa(vid) + " group by uid")
+	defer rows.Close()
+	result := map[string]string{}
+	for rows.Next() {
+		var score int
+		var uid string
+		rows.Columns()
+		err = rows.Scan(&uid, &score)
+		checkErr(err)
+		result[uid] = score
+		break
+	}
+	c.JSON(http.StatusOK, gin.H{"result": result})
 }
