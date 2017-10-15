@@ -6,7 +6,6 @@ import (
 	"database/sql"
 	_ "github.com/go-sql-driver/mysql"
 	"log"
-	"fmt"
 	"strconv"
 )
 
@@ -61,17 +60,12 @@ func Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
 }
 
-func getDb() *sql.DB {
-	Db, _ := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
-	return Db
-}
-
 func IsVoted(c *gin.Context) {
 	uid := c.Query("username"); // Todo 需要改为从session 获取
 	cid := c.Param("cid")
 	// Todo: 为什么在此处打印db 为nil?
 	db := getDb();
-	rows, err := db.Query("SELECT COUNT(*) as nums FROM vote where vid=" + strconv.Itoa(vid) +" and cid='" + cid +"' and uid='" + uid + "'")
+	rows, err := db.Query("SELECT COUNT(*) as nums FROM vote where vid=" + strconv.Itoa(vid) + " and cid='" + cid + "' and uid='" + uid + "'")
 	checkErr(err)
 	defer rows.Close()
 	voted := true;
@@ -91,32 +85,24 @@ func IsVoted(c *gin.Context) {
 func SetCompetitorScore(c *gin.Context) {
 	uid := c.Query("username"); // Todo 需要改为从session 获取
 	cid := c.Param("cid")
-	scores := c.PostForm("scores")
+	score := 1
 	db := getDb();
-	stmt, err := db.Prepare(`INSERT user (uid,cid,vid,score,type) values (?,?,?,?,?)`)
+	stmt, err := db.Prepare(`INSERT vote (uid,cid,vid,score,type) values (?,?,?,?,?)`)
 	checkErr(err)
-	for i, score := range scores {
-		_ , err := stmt.Exec(uid, cid, vid, score, i)
-		checkErr(err)
-	}
+	_, err = stmt.Exec(uid, cid, vid, score, 100)
+	checkErr(err)
 	c.JSON(http.StatusOK, gin.H{"success": true})
-}
-
-func checkErr(err error)  {
-	if err != nil {
-		log.Fatalln(err)
-	}
 }
 
 func SetTeemScore(c *gin.Context) {
 	uid := c.Query("username"); // Todo 需要改为从session 获取
 	cid := c.Param("cid")
-	scores := c.PostForm("scores")
+	scores := c.PostFormArray("scores")
 	db := getDb();
-	stmt, err := db.Prepare(`INSERT user (uid,cid,vid,score,type) values (?,?,?,?,?)`)
+	stmt, err := db.Prepare(`INSERT vote (uid,cid,vid,score,type) values (?,?,?,?,?)`)
 	checkErr(err)
 	for i, score := range scores {
-		_ , err := stmt.Exec(uid, cid, vid, score, i)
+		_, err = stmt.Exec(uid, cid, vid, score, i)
 		checkErr(err)
 	}
 	c.JSON(http.StatusOK, gin.H{"success": true})
@@ -124,11 +110,11 @@ func SetTeemScore(c *gin.Context) {
 
 func Summery(c *gin.Context) {
 	db := getDb();
-	rows, err := db.Query("SELECT uid, sum(score) as score FROM vote where vid=" + strconv.Itoa(vid) + " group by uid")
+	rows, err := db.Query("SELECT cid, sum(score) as score FROM vote where vid=" + strconv.Itoa(vid) + " group by cid")
 	defer rows.Close()
 	result := map[string]string{}
 	for rows.Next() {
-		var score int
+		var score string
 		var uid string
 		rows.Columns()
 		err = rows.Scan(&uid, &score)
@@ -137,4 +123,16 @@ func Summery(c *gin.Context) {
 		break
 	}
 	c.JSON(http.StatusOK, gin.H{"result": result})
+}
+
+func getDb() *sql.DB {
+	Db, _ := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
+	return Db
+}
+
+func checkErr(err error) {
+	if err != nil {
+		log.Println(err)
+		panic(err)
+	}
 }

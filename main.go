@@ -6,14 +6,13 @@ import (
 	 vote "ngdule/controller/vote"
 )
 
-var DB = make(map[string]string)
-
 func main() {
-
 	votePrefix := "/vote"
 
 	app := gin.Default()
 	app.Use(favicon.New("./favicon.ico"))
+	app.Use(gin.Recovery())
+	app.Use(gin.Logger())
 
 	app.Static("/assets", "./assets")
 	app.LoadHTMLGlob("templates/*")
@@ -26,7 +25,6 @@ func main() {
 	app.POST(votePrefix + "/login", vote.Login)
 	app.POST(votePrefix + "/score/competitor/:cid", vote.SetCompetitorScore)
 	app.POST(votePrefix + "/score/team/:cid", vote.SetTeemScore)
-
 
 	app.Run("192.168.31.248:8080")
 }
