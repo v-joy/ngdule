@@ -17,11 +17,11 @@ CREATE TABLE IF NOT EXISTS counter_judger (
   name VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS counter_vote (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  uid INT NOT NULL ,
-  cid INT NOT NULL ,
-  score int NOT NULL ,
-  type VARCHAR(30) NOT NULL
-);
-
+CREATE TABLE `vote` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `uid` varchar(30) CHARACTER SET utf8 NOT NULL,
+  `cid` varchar(30) CHARACTER SET utf8 NOT NULL,
+  `score` int(11) NOT NULL,
+  `type` varchar(30) CHARACTER SET utf8 NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8
