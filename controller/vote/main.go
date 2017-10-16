@@ -16,7 +16,6 @@ var users2 []string
 const vid = 1
 
 func init() {
-	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
 	users1 = []string{
 		"chenxiao",
 		"liujunling03",
@@ -29,16 +28,7 @@ func init() {
 		"test2",
 		"测试2",
 	}
-	if err != nil {
-		log.Fatalln(err)
-	}
-
-	db.SetMaxIdleConns(2)
-	db.SetMaxOpenConns(2)
-
-	if err := db.Ping(); err != nil {
-		log.Fatalln(err)
-	}
+	db = getDb()
 }
 
 func Teams(c *gin.Context) {
@@ -127,8 +117,16 @@ func Summery(c *gin.Context) {
 
 func getDb() *sql.DB {
 	if db == nil {
-		db, _ = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
-		log.Println("reopen db")
+		var err error
+		db, err = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
+		checkErr(err)
+		db.SetMaxIdleConns(2)
+		db.SetMaxOpenConns(2)
+
+		if err := db.Ping(); err != nil {
+			log.Fatalln(err)
+		}
+		log.Println("open db")
 	}
 	return db
 }
