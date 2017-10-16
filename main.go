@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/thinkerou/favicon"
-	 vote "ngdule/controller/vote"
+	vote "ngdule/controller/vote"
 )
 
 func main() {
@@ -17,14 +17,14 @@ func main() {
 	app.Static("/assets", "./assets")
 	app.LoadHTMLGlob("templates/*")
 
-	app.GET(votePrefix + "/", vote.Index)
-	app.GET(votePrefix + "/summery", vote.Summery)
-	app.GET(votePrefix + "/teams", vote.Teams)
-	app.GET(votePrefix + "/voted/:cid", vote.IsVoted)
+	app.GET(votePrefix+"/", vote.Index)
+	app.GET(votePrefix+"/summery", vote.Summery)
+	app.GET(votePrefix+"/teams", vote.Teams)
+	app.GET(votePrefix+"/voted/:cid", vote.IsVoted)
 
-	app.POST(votePrefix + "/login", vote.Login)
-	app.POST(votePrefix + "/score/competitor/:cid", vote.SetCompetitorScore)
-	app.POST(votePrefix + "/score/team/:cid", vote.SetTeemScore)
+	app.POST(votePrefix+"/login", vote.Login)
+	app.POST(votePrefix+"/score/competitor/:cid", vote.SetCompetitorScore)
+	app.POST(votePrefix+"/score/team/:cid", vote.SetTeemScore)
 
-	app.Run("192.168.31.248:8080")
+	app.Run("172.24.125.248:8080")
 }

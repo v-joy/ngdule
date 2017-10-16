@@ -9,14 +9,14 @@ import (
 	"strconv"
 )
 
-var Db *sql.DB
+var db *sql.DB
 var users1 []string
 var users2 []string
 
 const vid = 1
 
 func init() {
-	Db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
+	db, err := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
 	users1 = []string{
 		"chenxiao",
 		"liujunling03",
@@ -33,10 +33,10 @@ func init() {
 		log.Fatalln(err)
 	}
 
-	Db.SetMaxIdleConns(2)
-	Db.SetMaxOpenConns(2)
+	db.SetMaxIdleConns(2)
+	db.SetMaxOpenConns(2)
 
-	if err := Db.Ping(); err != nil {
+	if err := db.Ping(); err != nil {
 		log.Fatalln(err)
 	}
 }
@@ -126,8 +126,11 @@ func Summery(c *gin.Context) {
 }
 
 func getDb() *sql.DB {
-	Db, _ := sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
-	return Db
+	if db == nil {
+		db, _ = sql.Open("mysql", "root:root@tcp(127.0.0.1:3306)/ngdule?charset=utf8")
+		log.Println("reopen db")
+	}
+	return db
 }
 
 func checkErr(err error) {
